@@ -22,13 +22,7 @@ defmodule Hangman.Game do
       game.letters
       |> tally_letters(game.used)
 
-    %{
-      game_state:   game.game_state,
-      turns_left:   game.turns_left,
-      letters:       letters,
-      used:         game.used,
-      last_guessed: game.last_guessed
-    }
+    %Hangman.Game.State{ game | letters: letters }
   end
 
   # Helpers
