@@ -118,4 +118,30 @@ defmodule HangmanTest do
     {game, _} = Hangman.make_move(game, "s")
     assert game.game_state == :bad_guess
   end
+
+  test "bad guess decrements turns left" do
+    game = %Hangman.Game.State{
+      game_state:   :good_guess,
+      turns_left:   6,
+      letters:      ["e", "l", "i", "x", "i", "r"],
+      used:         ["e", "l", "r", "x", "z"],
+      last_guess:   "e"
+    }
+
+    {game, _} = Hangman.make_move(game, "s")
+    assert game.turns_left == 5
+  end
+
+  test "good guess does not decrement turns left" do
+    game = %Hangman.Game.State{
+      game_state:   :good_guess,
+      turns_left:   6,
+      letters:      ["e", "l", "i", "x", "i", "r"],
+      used:         ["e", "l", "x", "z"],
+      last_guess:   "e"
+    }
+
+    {game, _} = Hangman.make_move(game, "r")
+    assert game.turns_left == 6
+  end
 end

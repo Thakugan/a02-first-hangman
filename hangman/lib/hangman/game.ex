@@ -33,7 +33,7 @@ defmodule Hangman.Game do
   def make_move(game = %Hangman.Game.State{}, guess) do
     updated_state = game
       |> update_guesses(guess)
-      |> update_status(game.used)
+      |> update_state(game.used)
 
     { updated_state, Hangman.tally(updated_state) }
   end
@@ -73,34 +73,35 @@ defmodule Hangman.Game do
   end
 
   # Updates the game status based on the latest guess
-  defp update_status(game = %Hangman.Game.State{}, prev_guesses) do
+  defp update_state(game = %Hangman.Game.State{}, prev_guesses) do
+    {new_state, turns_left} = get_state(game, prev_guesses)
     %Hangman.Game.State{ game |
-      game_state: get_status(game, prev_guesses),
-      turns_left: game.turns_left - 1
+      game_state: new_state,
+      turns_left: turns_left
     }
   end
 
-  defp get_status(game = %Hangman.Game.State{}, prev_guesses) do
-    check_status({
+  defp get_state(game = %Hangman.Game.State{}, prev_guesses) do
+    check_status(
       game.letters,
       tally_letters(game.letters, game.used),
       tally_letters(game.letters, prev_guesses),
       game.used,
       prev_guesses,
-      game.turns_left})
+      game.turns_left)
   end
 
   # Pattern matching to find the new game status,
   # this should be refactored
   #
   # Won when the tally == letters
-  defp check_status({letters, letters, _, _, _, _}), do: :won
-  # Lost when only 1 turn is left(before deprecation)
-  defp check_status({_, _, _, _, _, 1}),             do: :lost
+  defp check_status(letters, letters, _, _, _, turns_left), do: {:won, turns_left}
   # Already used if the current and prev used lists are the same
-  defp check_status({_, _, _, used, used, _}),       do: :already_used
+  defp check_status(_, _, _, used, used, turns_left),       do: {:already_used, turns_left}
+  # Lost when tally hasn't changed and only 1 turn is left(before deprecation)
+  defp check_status(_, tally, tally, _, _, 1),              do: {:lost, 0}
   # Bad guess if the tally hasn't changed
-  defp check_status({_, tally, tally, _, _, _}),     do: :bad_guess
+  defp check_status(_, tally, tally, _, _, turns_left),     do: {:bad_guess, turns_left - 1}
   # Good guess otherwise
-  defp check_status(_),                              do: :good_guess
+  defp check_status(_, _, _, _, _, turns_left),             do: {:good_guess, turns_left}
 end
