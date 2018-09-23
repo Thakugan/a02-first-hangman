@@ -5,7 +5,7 @@ defmodule Hangman.Game do
       turns_left:   7,
       letters:      [],
       used:         [],
-      last_guessed: ""
+      last_guess:   ""
     )
   end
 
@@ -17,6 +17,11 @@ defmodule Hangman.Game do
   end
 
   # Returns the tally for the given game
+  # If the game has already been won or lost,
+  # no letters are hidden
+  def tally(game = %Hangman.Game.State{game_state: :won}),  do: game
+  def tally(game = %Hangman.Game.State{game_state: :lost}), do: game
+
   def tally(game = %Hangman.Game.State{}) do
     letters = game.letters |> tally_letters(game.used)
 
@@ -63,7 +68,7 @@ defmodule Hangman.Game do
         |> MapSet.put(guess)
         |> MapSet.to_list()
         |> Enum.sort(),
-      last_guessed: guess
+      last_guess: guess
     }
   end
 
